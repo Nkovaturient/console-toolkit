@@ -1,6 +1,6 @@
 import { Provider } from '../../../packages/react/src/providers/Provider'
 import { StorachaAuth } from '../../../packages/react/src/components/StorachaAuth'
-import { Web3MailAuthForm, AuthenticatedContent } from './components/Web3MailAuth'
+import { Web3MailAuthForm, AuthenticatedContent, Web3MailSubmitted } from './components/Web3MailAuth'
 
 function App() {
   const handleAuthEvent = (event: string, properties?: Record<string, any>) => {
@@ -17,6 +17,7 @@ function App() {
       >
         <StorachaAuth.Ensurer
           renderForm={() => <Web3MailAuthForm />}
+          renderSubmitted={() => <Web3MailSubmitted />}
         >
           <AuthenticatedContent />
         </StorachaAuth.Ensurer>
