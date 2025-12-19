@@ -178,12 +178,14 @@ export const SpaceCreatorProvider = ({
           return
         }
 
-        const toWebDID = (input?: string) =>
-          UcantoClient.Schema.DID.match({ method: 'web' }).from(input)
+        const toWebDID = (input?: string) => {
+          if (!input) return undefined
+          return UcantoClient.Schema.DID.match({ method: 'web' }).from(input)
+        }
 
         // Ensure gatewayHost is a valid URL string
         const finalGatewayHost = gatewayHost || 'https://w3s.link'
-        const gatewayId = toWebDID(gatewayDID) ?? toWebDID('did:web:w3s.link')
+        const gatewayId = toWebDID(gatewayDID) ?? toWebDID('did:web:w3s.link')!
 
         const storachaGateway = UcantoClient.connect({
           id: {
@@ -206,7 +208,7 @@ export const SpaceCreatorProvider = ({
           },
         } as any)
 
-        const provider = toWebDID(providerDID) || toWebDID('did:web:web3.storage')
+        const provider = toWebDID(providerDID) ?? toWebDID('did:web:storacha.network')!
         if (!provider) {
           const err = new Error('Failed to resolve provider DID')
           setError(err.message)
