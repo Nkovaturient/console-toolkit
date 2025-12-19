@@ -1190,7 +1190,7 @@ body {
 
 .features-grid-3d {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 2rem;
   margin-top: 1rem;
 }

@@ -36,7 +36,12 @@
     "@ariakit/react": "^0.4.20",
     "@ariakit/react-core": "^0.4.20",
     "@storacha/ui-core": "^2.4.0",
-    "ariakit-react-utils": "0.17.0-next.27"
+    "ariakit-react-utils": "0.17.0-next.27",
+    "@storacha/did-mailto": "^1.0.2",
+    "@ucanto/client": "^9.0.2",
+    "@ucanto/core": "^10.4.6",
+    "@ucanto/transport": "^9.2.1",
+    "multiformats": "^13.4.1"
   },
   "devDependencies": {
     "@testing-library/react": "^14.0.0",
@@ -52,5 +57,3 @@
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
   }
 }
-
-

@@ -2,8 +2,8 @@ import { useState, useEffect, FormEvent } from 'react'
 import { useStorachaAuth, StorachaAuth } from '../../../../packages/react/src/index'
 import { Footer } from './Footer'
 import { Header } from './Header'
-// import { Web3MailFileUpload } from './Web3MailFileUpload'
-// import { Web3MailShare } from './Web3MailShare'
+import { Web3MailSpaces } from './Web3MailSpaces'
+
 
 export function Web3MailSubmitted() {
   const auth = useStorachaAuth()
@@ -105,17 +105,19 @@ export function AuthenticatedContent() {
                   <div className="wallet-badge">✓ Verified</div>
                 </div>
               </div>
-
-
-            </div>
-
-          </div>
-          <div className="action-section-3d">
+              <div className="action-section-3d">
             <button onClick={auth.logout} className="logout-button-3d">
               <span className="button-text">Sign Out</span>
               <span className="button-shine"></span>
             </button>
           </div>
+
+            </div>
+
+          </div>
+          
+
+          <Web3MailSpaces />
 
           <div className="features-grid-3d">
             <div className="feature-card-3d">
@@ -148,6 +150,7 @@ export function AuthenticatedContent() {
               <p className="feature-desc">End-to-end encrypted communications</p>
             </div>
           </div>
+
         </div>
       </main>
 

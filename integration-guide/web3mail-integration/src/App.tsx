@@ -20,6 +20,11 @@ function App() {
           renderSubmitted={() => <Web3MailSubmitted />}
         >
           <AuthenticatedContent />
+          {/* <SpaceEnsurer>
+            <SpacePicker>
+              <SpaceManagementApp />
+            </SpacePicker>
+          </SpaceEnsurer> */}
         </StorachaAuth.Ensurer>
       </StorachaAuth>
     </Provider>
