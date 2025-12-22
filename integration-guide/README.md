@@ -3,64 +3,170 @@
 This guide provides comprehensive instructions for integrating the Storacha Console Integration Toolkit into various platforms and applications.
 Live integrations demo examples avaialable for:-
 - Dmail
-- web3
-- more coming soon...
+- web3Mail
 
 ## 🚀 Quick Integration
 
-### Basic Setup
+### 🌐 Web3Mail Integration
+Complete integration with Web3Mail (EtherMail) for decentralized email authentication and file storage.
 
-1. **Install the package:**
+**Location:** `web3mail-integration/`
+
+**Features:**
+- Web3Mail email authentication (@ethmail.cc, @ethermail.io)
+- Space creation and management
+- File upload with drag-and-drop
+- File sharing via email or DID
+- File viewing with CID and gateway URLs
+
+**Quick Start:**
 ```bash
-npm install @storacha/ui-react
+cd web3mail-integration
+pnpm install
+pnpm dev
+# Available at http://localhost:3002
 ```
 
-2. **Wrap your app with providers:**
-```tsx
-import { Provider, Authenticator, Uploader } from '@storacha/ui-react'
+📖 [Full Documentation →](./web3mail-integration/web3mail-integration.md)
 
-function App() {
-  return (
-    <Provider>
-      <Authenticator>
-        <Uploader>
-          {/* Your application */}
-        </Uploader>
-      </Authenticator>
-    </Provider>
-  )
-}
-```
+### 📧 Dmail Integration
+Complete integration with Dmail for email-based authentication and file storage.
 
-3. **Add authentication and upload components:**
-```tsx
-import { useAuthenticator, useUploader } from '@storacha/ui-react'
+**Location:** `dmail-integration/`
 
-function MyComponent() {
-  const [{ accounts }] = useAuthenticator()
-  const [{ status, file }] = useUploader()
-  
-  // Your component logic
-}
-```
+**Features:**
+- Dmail email authentication (@dmail.ai)
+- Space creation and management
+- File upload with progress tracking
+- File sharing via email or DID
+- Iframe support for embedded experiences
 
-## 🎯 Platform-Specific Integrations
-
-### React Applications
-
-#### Next.js Integration
-
-**1. Install dependencies:**
+**Quick Start:**
 ```bash
-npm install @storacha/ui-react
+cd dmail-integration
+pnpm install
+pnpm dev
+# Available at http://localhost:3001
 ```
 
-**2. Create a provider wrapper:**
+📖 [Full Documentation →](./dmail-integration/dmail-integration.md)
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and pnpm installed
+- Built console-toolkit packages
+
+
+### Setup
+
+1. **Build the toolkit packages** (from console-toolkit root):
+```bash
+pnpm -r build
+```
+
+2. **Navigate to an integration example:**
+```bash
+cd integration-guide/web3mail-integration
+# or
+cd integration-guide/dmail-integration
+```
+
+3. **Install dependencies:**
+```bash
+pnpm install
+```
+
+4. **Run the development server:**
+```bash
+pnpm dev
+```
+
+## 📚 Core Packages
+
+Both integrations use the following packages:
+
+- **`@storacha/console-toolkit-react`**: Core authentication hooks and providers
+  - `Provider`: Main context provider for Storacha client
+  - `StorachaAuth.Ensurer`: Handles authentication flow and state management
+  - `SpaceEnsurer`: Ensures at least one space exists
+  - `SpacePicker`: Space selection and management
+  - `SpaceCreator`: Create new spaces
+  - `UploadTool`: File upload functionality
+  - `SpaceList`: List and view uploads
+  - `FileViewer`: View file details
+  - `SharingTool`: Share spaces with others
+
+- **`@storacha/console-toolkit-react-styled`**: Pre-styled authentication components
+  - Pre-built styled components for faster development
+  - Consistent theming and branding
+
+## 🏗️ Architecture Pattern
+
+Both integrations follow the same architectural pattern:
+
+```typescript
+<Provider>
+  <StorachaAuth>
+    <StorachaAuth.Ensurer>
+      <SpaceEnsurer>
+        <SpacePicker>
+          {/* Your application components */}
+        </SpacePicker>
+      </SpaceEnsurer>
+    </StorachaAuth.Ensurer>
+  </StorachaAuth>
+</Provider>
+```
+
+**Component Flow:**
+1. **Provider**: Initializes the Storacha client
+2. **StorachaAuth**: Manages authentication state
+3. **StorachaAuth.Ensurer**: Ensures user is authenticated
+4. **SpaceEnsurer**: Ensures at least one space exists
+5. **SpacePicker**: Provides space selection context
+6. **Your Components**: Use hooks to access spaces, uploads, etc.
+
+## 🎯 Key Features Implemented
+
+### Authentication
+- Email-based authentication with platform-specific validation
+- Custom authentication forms with platform branding
+- Email verification flow
+- Session management
+
+### Space Management
+- Create public or private spaces
+- List and search spaces
+- Space selection and context management
+- Space metadata (name, DID, access type)
+
+### File Operations
+- Drag-and-drop file uploads
+- Upload progress tracking
+- Support for files, directories, and CAR files
+- File listing with pagination
+- File details (CID, gateway URL, shards)
+- File removal
+
+
+# 🎯 Platform-Specific Integrations
+
+## React Applications
+
+### Next.js Integration
+1. Install dependencies:
+
+`npm install @storacha/console-toolkit-react`
+
+2. Create a provider wrapper:
+
 ```tsx
 // app/providers.tsx
 'use client'
 
-import { Provider } from '@storacha/ui-react'
+import { Provider } from '@storacha/console-toolkit-react'
 
 export function StorachaProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -74,7 +180,8 @@ export function StorachaProvider({ children }: { children: React.ReactNode }) {
 }
 ```
 
-**3. Add to your layout:**
+3. Add to your layout:
+
 ```tsx
 // app/layout.tsx
 import { StorachaProvider } from './providers'
@@ -96,54 +203,58 @@ export default function RootLayout({
 }
 ```
 
-**4. Use in your pages:**
+4. Use in your pages:
+
 ```tsx
 // app/upload/page.tsx
 'use client'
 
-import { Authenticator, Uploader } from '@storacha/ui-react'
+import { StorachaAuth, UploadTool } from '@storacha/console-toolkit-react'
 
 export default function UploadPage() {
   return (
-    <Authenticator>
-      <Uploader>
-        <div>
-          <h1>Upload Files</h1>
-          {/* Your upload UI */}
-        </div>
-      </Uploader>
-    </Authenticator>
+    <StorachaAuth>
+      <StorachaAuth.Ensurer>
+        <UploadTool space={selectedSpace}>
+          <div>
+            <h1>Upload Files</h1>
+            {/* Your upload UI */}
+          </div>
+        </UploadTool>
+      </StorachaAuth.Ensurer>
+    </StorachaAuth>
   )
 }
 ```
 
-#### Create React App Integration
+## Create React App Integration
+1. Install dependencies:
 
-**1. Install dependencies:**
-```bash
-npm install @storacha/ui-react
-```
+`npm install @storacha/console-toolkit-react`
 
-**2. Update your main App component:**
-```tsx
+2. Update your main App component:
+
+```ts
 // src/App.tsx
 import React from 'react'
-import { Provider, Authenticator, Uploader } from '@storacha/ui-react'
+import { Provider, StorachaAuth, UploadTool } from '@storacha/console-toolkit-react'
 import './App.css'
 
 function App() {
   return (
     <Provider>
-      <Authenticator>
-        <Uploader>
-          <div className="App">
-            <header className="App-header">
-              <h1>My Storacha App</h1>
-              {/* Your app content */}
-            </header>
-          </div>
-        </Uploader>
-      </Authenticator>
+      <StorachaAuth>
+        <StorachaAuth.Ensurer>
+          <UploadTool space={selectedSpace}>
+            <div className="App">
+              <header className="App-header">
+                <h1>My Storacha App</h1>
+                {/* Your app content */}
+              </header>
+            </div>
+          </UploadTool>
+        </StorachaAuth.Ensurer>
+      </StorachaAuth>
     </Provider>
   )
 }
@@ -151,14 +262,13 @@ function App() {
 export default App
 ```
 
-### Vue.js Integration
+## Vue.js Integration
 
-**1. Install dependencies:**
-```bash
-npm install @storacha/ui-react
-```
+1. Install dependencies:
 
-**2. Create a Vue wrapper component:**
+`npm install @storacha/console-toolkit-react`
+
+2. Create a Vue wrapper component:
 
 ```vue
 <!-- StorachaWrapper.vue -->
@@ -169,7 +279,7 @@ npm install @storacha/ui-react
 <script setup>
 import { onMounted, ref } from 'vue'
 import { createRoot } from 'react-dom/client'
-import { Provider, Authenticator, Uploader } from '@storacha/ui-react'
+import { Provider, StorachaAuth, UploadTool } from '@storacha/console-toolkit-react'
 
 const storachaContainer = ref(null)
 
@@ -178,9 +288,11 @@ onMounted(() => {
     const root = createRoot(storachaContainer.value)
     root.render(
       React.createElement(Provider, null,
-        React.createElement(Authenticator, null,
-          React.createElement(Uploader, null,
-            React.createElement('div', null, 'Storacha Components')
+        React.createElement(StorachaAuth, null,
+          React.createElement(StorachaAuth.Ensurer, null,
+            React.createElement(UploadTool, { space: selectedSpace },
+              React.createElement('div', null, 'Storacha Components')
+            )
           )
         )
       )
@@ -190,19 +302,19 @@ onMounted(() => {
 </script>
 ```
 
-### Angular Integration
+## Angular Integration
 
-**1. Install dependencies:**
-```bash
-npm install @storacha/ui-react
-```
+1. Install dependencies:
 
-**2. Create an Angular wrapper component:**
-```typescript
+`npm install @storacha/console-toolkit-react`
+
+2. Create an Angular wrapper component:
+
+```ts
 // storacha-wrapper.component.ts
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core'
 import { createRoot } from 'react-dom/client'
-import { Provider, Authenticator, Uploader } from '@storacha/ui-react'
+import { Provider, StorachaAuth, UploadTool } from '@storacha/console-toolkit-react'
 
 @Component({
   selector: 'app-storacha-wrapper',
@@ -215,156 +327,34 @@ export class StorachaWrapperComponent implements OnInit {
     const root = createRoot(this.container.nativeElement)
     root.render(
       React.createElement(Provider, null,
-        React.createElement(Authenticator, null,
-          React.createElement(Uploader, null,
-            React.createElement('div', null, 'Storacha Components')
+        React.createElement(StorachaAuth, null,
+          React.createElement(StorachaAuth.Ensurer, null,
+            React.createElement(UploadTool, { space: selectedSpace },
+              React.createElement('div', null, 'Storacha Components')
+            )
           )
         )
       )
     )
   }
 }
+``` 
+
+### 🔧 Configuration
+- Set up environment variables for different environments:
 ```
-
-## 🔧 Configuration
-
-### Environment Variables[change as required]
-
-Set up environment variables for different environments:
-
-```bash
-# .env.local
 NEXT_PUBLIC_SERVICE_URL=https://api.storacha.network
 NEXT_PUBLIC_SERVICE_PRINCIPAL=did:web:storacha.network
 NEXT_PUBLIC_UCAN_KMS_URL=https://kms.storacha.network
 NEXT_PUBLIC_UCAN_KMS_DID=did:web:kms.storacha.network
 ```
 
-
-## 🖼 Iframe Integration
-
-### Basic Iframe Setup
-
-**1. Create an iframe page:**
-```tsx
-// iframe-page.tsx
-import { Provider, Authenticator, Uploader } from '@storacha/ui-react'
-
-export default function IframePage() {
-  return (
-    <Provider>
-      <Authenticator>
-        <Uploader>
-          <div style={{ padding: '20px' }}>
-            <h1>Storacha Integration</h1>
-            {/* Your components */}
-          </div>
-        </Uploader>
-      </Authenticator>
-    </Provider>
-  )
-}
-```
-
-**2. Embed in parent application:**
-```html
-<iframe 
-  src="https://your-app.com/storacha-iframe"
-  width="100%"
-  height="600"
-  frameborder="0"
-  allow="camera; microphone; geolocation">
-</iframe>
-```
-
-### PostMessage Communication
-
-**1. Set up communication in iframe:**
-```tsx
-// iframe-page.tsx
-import { useEffect } from 'react'
-import { useAuthenticator, useUploader } from '@storacha/ui-react'
-
-export default function IframePage() {
-  const [{ accounts }] = useAuthenticator()
-  const [{ status, dataCID }] = useUploader()
-
-  useEffect(() => {
-    // Send authentication status to parent
-    window.parent.postMessage({
-      type: 'AUTH_STATUS',
-      authenticated: accounts.length > 0,
-      email: accounts[0]?.toEmail()
-    }, '*')
-  }, [accounts])
-
-  useEffect(() => {
-    // Send upload status to parent
-    window.parent.postMessage({
-      type: 'UPLOAD_STATUS',
-      status,
-      cid: dataCID?.toString()
-    }, '*')
-  }, [status, dataCID])
-
-  return (
-    <div>
-      {/* Your components */}
-    </div>
-  )
-}
-```
-
-**2. Listen for messages in parent:**
-```tsx
-// parent-app.tsx
-import { useEffect, useState } from 'react'
-
-export default function ParentApp() {
-  const [authStatus, setAuthStatus] = useState(null)
-  const [uploadStatus, setUploadStatus] = useState(null)
-
-  useEffect(() => {
-    const handleMessage = (event) => {
-      if (event.data.type === 'AUTH_STATUS') {
-        setAuthStatus(event.data)
-      } else if (event.data.type === 'UPLOAD_STATUS') {
-        setUploadStatus(event.data)
-      }
-    }
-
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [])
-
-  return (
-    <div>
-      <h1>Parent Application</h1>
-      {authStatus?.authenticated && (
-        <p>User: {authStatus.email}</p>
-      )}
-      {uploadStatus?.status === 'succeeded' && (
-        <p>Upload complete: {uploadStatus.cid}</p>
-      )}
-      <iframe 
-        src="/storacha-iframe"
-        width="100%"
-        height="600"
-        frameborder="0"
-      />
-    </div>
-  )
-}
-```
-
-## 🧪 Testing[modify as implemented]
-
 ### Unit Testing
 
 ```tsx
 // auth.test.tsx
 import { render, screen } from '@testing-library/react'
-import { Provider, Authenticator } from '@storacha/ui-react'
+import { Provider, Authenticator } from '@storacha/console-toolkit-react'
 
 test('renders authentication form', () => {
   render(
@@ -388,7 +378,7 @@ test('renders authentication form', () => {
 // integration.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Provider, Authenticator, Uploader } from '@storacha/ui-react'
+import { Provider, Authenticator, Uploader } from '@storacha/console-toolkit-react'
 
 test('complete upload flow', async () => {
   const user = userEvent.setup()
@@ -457,3 +447,9 @@ if (spaces.length === 0) {
   return <div>No spaces available</div>
 }
 ```
+
+## 📖 Learn More
+
+- [Web3Mail Integration Documentation](./web3mail-integration/web3mail-integration.md)
+- [Dmail Integration Documentation](./dmail-integration/dmail-integration.md)
+- [Console Toolkit Examples](../examples/)
