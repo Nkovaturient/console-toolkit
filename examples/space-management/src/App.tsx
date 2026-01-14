@@ -191,21 +191,7 @@ function SpaceManagementApp() {
   const [selectedRoot, setSelectedRoot] = useState<UnknownLink | undefined>()
   const [revokingEmails, setRevokingEmails] = useState<Set<string>>(new Set())
 
-  const handleDeleteSpace = async () => {
-    if (!selectedSpace || !client) return
 
-    if (window.confirm(`Are you sure you want to delete the space "${selectedSpace.name}"? This action cannot be undone.`)) {
-      try {
-        await (client as any).removeSpace(selectedSpace.did())
-        setSelectedSpace(undefined)
-        setViewMode('picker')
-        window.location.reload()
-      } catch (error: any) {
-        console.error('Delete space error:', error)
-        alert(`Failed to delete space: ${error.message}`)
-      }
-    }
-  }
 
   const handleLogout = async () => {
     try {
@@ -446,21 +432,12 @@ function SpaceManagementApp() {
                   {selectedSpace.access?.type === 'private' ? '🔒 Private' : '🌐 Public'}
                 </span>
               </div>
-              <div className="app-space-actions">
-                <button
-                  onClick={handleDeleteSpace}
-                  className="app-delete-button"
-                  title="Delete Space"
-                >
-                  <span>🗑️</span> Delete
-                </button>
-                <button
-                  onClick={() => setViewMode('upload')}
-                  className="app-upload-file-button"
-                >
-                  <span>📤</span> Upload a file
-                </button>
-              </div>
+              <button
+                onClick={() => setViewMode('upload')}
+                className="app-upload-file-button"
+              >
+                <span>📤</span> Upload a file
+              </button>
             </div>
             <SpaceList space={selectedSpace}>
               <SpaceList.List
