@@ -44,9 +44,9 @@ export type PlanGateContextActions = {
      */
     refreshPlan: () => Promise<void>
     /**
-     * Open billing page
+     * Select a plan and create checkout session
      */
-    openBillingPage: () => void
+    selectPlan: (planID: string) => Promise<void>
 }
 
 export type PlanGateContextValue = [
@@ -65,8 +65,8 @@ export const PlanGateContextDefaultValue: PlanGateContextValue = [
         refreshPlan: async () => {
             throw new Error('missing refreshPlan function')
         },
-        openBillingPage: () => {
-            throw new Error('missing openBillingPage function')
+        selectPlan: async () => {
+            throw new Error('missing selectPlan function')
         },
     },
 ]
@@ -77,11 +77,6 @@ export const PlanGateContext = createContext<PlanGateContextValue>(
 
 export interface PlanGateProps {
     children?: ReactNode
-    /**
-     * URL to the billing/plan selection page
-     * @default 'https://console.storacha.network/plans'
-     */
-    billingUrl?: string
     /**
      * Callback when plan check completes
      */
@@ -97,7 +92,6 @@ export interface PlanGateProps {
  */
 export const PlanGateProvider = ({
     children,
-    billingUrl = 'https://console.storacha.network/plans',
     onPlanChecked,
     onError,
 }: PlanGateProps) => {
@@ -160,9 +154,30 @@ export const PlanGateProvider = ({
         await checkPlan()
     }, [checkPlan])
 
-    const openBillingPage = useCallback(() => {
-        window.open(billingUrl, '_blank', 'noopener,noreferrer')
-    }, [billingUrl])
+    const selectPlan = useCallback(async (planID: string) => {
+        if (!client || accounts.length === 0) {
+            throw new Error('Client or account not available')
+        }
+
+        try {
+            const account = accounts[0]
+            const checkoutResponse = await client.capability.plan.createCheckoutSession(
+                account.did(),
+                {
+                    planID: planID as any, // planID is a DID string
+                    successURL: window.location.href,
+                    cancelURL: window.location.href,
+                    redirectAfterCompletion: true,
+                }
+            )
+            
+            // Open the authenticated checkout session URL
+            window.open(checkoutResponse.url, '_blank', 'noopener,noreferrer')
+        } catch (error) {
+            console.error('Failed to create checkout session:', error)
+            throw error
+        }
+    }, [client, accounts])
 
     // Check plan on mount and when accounts change
     useEffect(() => {
@@ -181,10 +196,10 @@ export const PlanGateProvider = ({
             },
             {
                 refreshPlan,
-                openBillingPage,
+                selectPlan,
             },
         ],
-        [state, planStatus, plan, error, refreshPlan, openBillingPage]
+        [state, planStatus, plan, error, refreshPlan, selectPlan]
     )
 
     return (
@@ -221,7 +236,7 @@ export interface PlanGateFallbackProps {
     renderFallback?: (state: {
         planStatus: PlanStatus
         error?: string
-        openBillingPage: () => void
+        selectPlan: (planID: string) => Promise<void>
         refreshPlan: () => Promise<void>
     }) => ReactNode
     /**
@@ -247,14 +262,14 @@ export const PlanGateFallback = ({
     style,
     children
 }: PlanGateFallbackProps) => {
-    const [{ planStatus, error }, { openBillingPage, refreshPlan }] = usePlanGateContext()
+    const [{ planStatus, error }, { selectPlan, refreshPlan }] = usePlanGateContext()
 
     if (planStatus === 'active') {
         return null
     }
 
     if (renderFallback) {
-        return <>{renderFallback({ planStatus, error, openBillingPage, refreshPlan })}</>
+        return <>{renderFallback({ planStatus, error, selectPlan, refreshPlan })}</>
     }
 
     if (children) {
@@ -276,7 +291,7 @@ export const PlanGateFallback = ({
                         To create a space, you need to select a billing plan.
                         Don't worry—there's a <strong>free Starter plan</strong> available!
                     </p>
-                    <button onClick={openBillingPage} type="button">
+                    <button onClick={() => selectPlan('did:web:starter.storacha.network')} type="button">
                         Select Free Plan →
                     </button>
                     <button onClick={refreshPlan} type="button">
