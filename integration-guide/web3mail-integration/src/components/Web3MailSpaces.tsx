@@ -7,7 +7,7 @@ import {
   FileViewer,
   SharingTool,
   UploadTool,
-  useW3,
+  PlanGate,
   useSpacePickerContext,
   useSpaceCreatorContext,
   useSharingToolContext,
@@ -22,26 +22,14 @@ const DEFAULT_GATEWAY_DID = 'did:web:w3s.link'
 const DEFAULT_PROVIDER_DID = 'did:web:web3.storage'
 
 export function Web3MailSpaces() {
-  const [{ accounts }, { logout }] = useW3()
   const [{ selectedSpace }, { setSelectedSpace }] = useSpacePickerContext()
   const [viewMode, setViewMode] = useState<ViewMode>('picker')
   const [selectedRoot, setSelectedRoot] = useState<UnknownLink | undefined>()
 
-  const handleLogout = async () => {
-    try {
-      if (logout) {
-        await logout()
-        window.location.reload()
-      }
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
-  }
-
   return (
     <div className="w3m-app-container">
 
-        <nav className="w3m-nav">
+      <nav className="w3m-nav">
         <button
           onClick={() => setViewMode('picker')}
           className={`w3m-nav-btn ${viewMode === 'picker' ? 'active' : ''}`}
@@ -196,43 +184,155 @@ function SpaceCreatorView({ onSpaceCreated }: { onSpaceCreated: (space: Space) =
         <h2>Create a New Space</h2>
         <p className="w3m-section-desc">A space is a decentralized bucket for storing your files</p>
       </div>
-      <SpaceCreator
-        gatewayHost={DEFAULT_GATEWAY_HOST}
-        gatewayDID={DEFAULT_GATEWAY_DID}
-        providerDID={DEFAULT_PROVIDER_DID}
-        onSpaceCreated={onSpaceCreated}
-        onError={(error) => {
-          console.error('Space creation error:', error)
-          const errorMessage = (error as any)?.cause?.message || error.message
-          const planUrl = (error as any)?.planSelectionUrl
-          const isAccountPlanMissing = (error as any)?.isAccountPlanMissing || errorMessage?.includes('AccountPlanMissing') || errorMessage?.includes('payment plan')
-          
-          if (isAccountPlanMissing) {
-            const message = planUrl 
-              ? `Account payment plan required. Please select the free Starter plan to continue.\n\nClick OK to open the plan selection page.`
-              : 'Account payment plan required. Please select a payment plan (free Starter plan available) in your account settings to provision spaces.'
-            
-            if (confirm(message)) {
-              if (planUrl) {
-                window.open(planUrl, '_blank')
-              }
-            }
-          } else {
-            alert(`Failed to create space: ${errorMessage}`)
-          }
-        }}
-      >
-        <SpaceCreator.Form
-          renderContainer={(children) => <div className="w3m-creator-form">{children}</div>}
-          renderNameInput={() => <SpaceCreatorNameField />}
-          renderAccessTypeSelector={() => <SpaceCreatorAccessField />}
-          renderSubmitButton={(disabled) => (
-            <button type="submit" className={`w3m-primary-btn ${disabled ? 'loading' : ''}`} disabled={disabled}>
-              {disabled ? '⏳ Creating Space...' : '➕ Create Space'}
-            </button>
+      <PlanGate>
+        <PlanGate.Fallback
+          renderFallback={({ planStatus, error, selectPlan, refreshPlan }) => (
+            <div className="w3m-plan-gate-fallback">
+              {planStatus === 'loading' && (
+                <div className="w3m-loading-state">
+                  <span className="w3m-spinner"></span>
+                  <p>Checking your plan status...</p>
+                </div>
+              )}
+              {planStatus === 'missing' && (
+                <div className="w3m-plans-container">
+                  <div className="w3m-plans-header">
+                    <h2 className="w3m-plans-title">Plans</h2>
+                    <p className="w3m-plans-description">
+                      Pick the price plan that works for you.
+                      <br />
+                      <strong>Starter</strong> is free for up to 5GiB.
+                      <br />
+                      <strong>Lite</strong> and <strong>Business</strong> plans unlock lower cost per GiB.
+                    </p>
+                  </div>
+                  <div className="w3m-plans-grid">
+                    <div className="w3m-plan-card">
+                      <div className="w3m-plan-header">
+                        <h3 className="w3m-plan-name">Starter</h3>
+                        <div className="w3m-plan-peppers">🌶️</div>
+                      </div>
+                      <div className="w3m-plan-price">$0/mo</div>
+                      <div className="w3m-plan-features">
+                        <div className="w3m-plan-feature">
+                          <strong>5GB Storage</strong>
+                          <span>Additional at $0.15/GB per month</span>
+                        </div>
+                        <div className="w3m-plan-feature">
+                          <strong>5GB Egress</strong>
+                          <span>Additional at $0.15/GB per month</span>
+                        </div>
+                      </div>
+                      <button
+                        className="w3m-primary-btn"
+                        type="button"
+                        onClick={() => selectPlan('did:web:starter.storacha.network')}
+                      >
+                        Start Storing
+                      </button>
+                    </div>
+                    <div className="w3m-plan-card">
+                      <div className="w3m-plan-header">
+                        <h3 className="w3m-plan-name">Lite</h3>
+                        <div className="w3m-plan-peppers">🌶️🌶️</div>
+                      </div>
+                      <div className="w3m-plan-price">$10/mo</div>
+                      <div className="w3m-plan-features">
+                        <div className="w3m-plan-feature">
+                          <strong>100GB Storage</strong>
+                          <span>Additional at $0.05/GB per month</span>
+                        </div>
+                        <div className="w3m-plan-feature">
+                          <strong>100GB Egress</strong>
+                          <span>Additional at $0.05/GB per month</span>
+                        </div>
+                      </div>
+                      <button
+                        className="w3m-primary-btn"
+                        type="button"
+                        onClick={() => selectPlan('did:web:lite.storacha.network')}
+                      >
+                        Start Storing
+                      </button>
+                    </div>
+                    <div className="w3m-plan-card">
+                      <div className="w3m-plan-header">
+                        <h3 className="w3m-plan-name">Business</h3>
+                        <div className="w3m-plan-peppers">🌶️🌶️🌶️</div>
+                      </div>
+                      <div className="w3m-plan-price">$100/mo</div>
+                      <div className="w3m-plan-features">
+                        <div className="w3m-plan-feature">
+                          <strong>2TB Storage</strong>
+                          <span>Additional at $0.03/GB per month</span>
+                        </div>
+                        <div className="w3m-plan-feature">
+                          <strong>2TB Egress</strong>
+                          <span>Additional at $0.03/GB per month</span>
+                        </div>
+                      </div>
+                      <button
+                        className="w3m-primary-btn"
+                        type="button"
+                        onClick={() => selectPlan('did:web:business.storacha.network')}
+                      >
+                        Start Storing
+                      </button>
+                    </div>
+                  </div>
+                  <button className="w3m-secondary-btn" type="button" onClick={refreshPlan} style={{ marginTop: '20px' }}>
+                    I've selected a plan, refresh
+                  </button>
+                </div>
+              )}
+              {planStatus === 'error' && (
+                <div className="w3m-empty-state">
+                  <div className="w3m-empty-icon">⚠️</div>
+                  <p className="w3m-empty-title">Error</p>
+                  <p className="w3m-empty-desc">{error || 'Failed to check plan status.'}</p>
+                  <button className="w3m-primary-btn" type="button" onClick={refreshPlan}>
+                    Try Again
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         />
-      </SpaceCreator>
+        <PlanGate.Gate>
+          <SpaceCreator
+            gatewayHost={DEFAULT_GATEWAY_HOST}
+            gatewayDID={DEFAULT_GATEWAY_DID}
+            providerDID={DEFAULT_PROVIDER_DID}
+            onSpaceCreated={onSpaceCreated}
+            onError={(error) => {
+              console.error('Space creation error:', error)
+              const errorMessage = (error as any)?.cause?.message || error.message
+              // Filter out plan-related errors since PlanGate handles plan selection
+              const isPlanError =
+                (error as any)?.isAccountPlanMissing ||
+                errorMessage?.includes('AccountPlanMissing') ||
+                errorMessage?.includes('payment plan') ||
+                errorMessage?.includes('plan selection') ||
+                errorMessage?.includes('billing plan')
+
+              if (!isPlanError) {
+                alert(`Failed to create space: ${errorMessage}`)
+              }
+            }}
+          >
+            <SpaceCreator.Form
+              renderContainer={(children) => <div className="w3m-creator-form">{children}</div>}
+              renderNameInput={() => <SpaceCreatorNameField />}
+              renderAccessTypeSelector={() => <SpaceCreatorAccessField />}
+              renderSubmitButton={(disabled) => (
+                <button type="submit" className={`w3m-primary-btn ${disabled ? 'loading' : ''}`} disabled={disabled}>
+                  {disabled ? '⏳ Creating Space...' : '➕ Create Space'}
+                </button>
+              )}
+            />
+          </SpaceCreator>
+        </PlanGate.Gate>
+      </PlanGate>
     </div>
   )
 }

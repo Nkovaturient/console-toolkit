@@ -9,6 +9,7 @@ import {
   FileViewer,
   SharingTool,
   UploadTool,
+  PlanGate,
   useSpacePickerContext,
   useSpaceCreatorContext,
   useSpaceListContext,
@@ -23,6 +24,134 @@ const DEFAULT_GATEWAY_HOST = 'https://w3s.link'
 const DEFAULT_GATEWAY_DID = 'did:web:w3s.link'
 const DEFAULT_PROVIDER_DID = 'did:web:web3.storage'
 
+function PlanGateFallbackContent({
+  planStatus,
+  error,
+  selectPlan,
+  refreshPlan,
+}: {
+  planStatus: 'loading' | 'active' | 'missing' | 'error'
+  error?: string
+  selectPlan: (planID: string) => Promise<void>
+  refreshPlan: () => Promise<void>
+}) {
+  if (planStatus === 'loading') {
+    return (
+      <div className="space-empty">
+        <div className="space-help">Checking your plan status...</div>
+      </div>
+    )
+  }
+
+  if (planStatus === 'missing') {
+    return (
+      <div className="space-form">
+        <div className="space-field">
+          <h3 className="space-card-title" style={{ marginBottom: '16px' }}>Billing Plan Required</h3>
+          <p className="space-help" style={{ marginBottom: '24px' }}>
+            Pick the price plan that works for you.
+            <br />
+            <strong>Starter</strong> is free for up to 5GiB.
+            <br />
+            <strong>Lite</strong> and <strong>Business</strong> plans unlock lower cost per GiB.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <div className="space-card-3d" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 style={{ margin: 0 }}>Starter</h4>
+              <span>🌶️</span>
+            </div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>$0/mo</div>
+            <div className="space-help" style={{ fontSize: '12px', marginBottom: '12px' }}>
+              <div><strong>5GB Storage</strong></div>
+              <div>Additional at $0.15/GB per month</div>
+            </div>
+            <div className="space-help" style={{ fontSize: '12px', marginBottom: '16px' }}>
+              <div><strong>5GB Egress</strong></div>
+              <div>Additional at $0.15/GB per month</div>
+            </div>
+            <button
+              className="space-primary-btn"
+              type="button"
+              onClick={() => selectPlan('did:web:starter.storacha.network')}
+            >
+              Start Storing
+            </button>
+          </div>
+
+          <div className="space-card-3d" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 style={{ margin: 0 }}>Lite</h4>
+              <span>🌶️🌶️</span>
+            </div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>$10/mo</div>
+            <div className="space-help" style={{ fontSize: '12px', marginBottom: '12px' }}>
+              <div><strong>100GB Storage</strong></div>
+              <div>Additional at $0.05/GB per month</div>
+            </div>
+            <div className="space-help" style={{ fontSize: '12px', marginBottom: '16px' }}>
+              <div><strong>100GB Egress</strong></div>
+              <div>Additional at $0.05/GB per month</div>
+            </div>
+            <button
+              className="space-primary-btn"
+              type="button"
+              onClick={() => selectPlan('did:web:lite.storacha.network')}
+            >
+              Start Storing
+            </button>
+          </div>
+
+          <div className="space-card-3d" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 style={{ margin: 0 }}>Business</h4>
+              <span>🌶️🌶️🌶️</span>
+            </div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>$100/mo</div>
+            <div className="space-help" style={{ fontSize: '12px', marginBottom: '12px' }}>
+              <div><strong>2TB Storage</strong></div>
+              <div>Additional at $0.03/GB per month</div>
+            </div>
+            <div className="space-help" style={{ fontSize: '12px', marginBottom: '16px' }}>
+              <div><strong>2TB Egress</strong></div>
+              <div>Additional at $0.03/GB per month</div>
+            </div>
+            <button
+              className="space-primary-btn"
+              type="button"
+              onClick={() => selectPlan('did:web:business.storacha.network')}
+            >
+              Start Storing
+            </button>
+          </div>
+        </div>
+
+        <button className="space-secondary-btn" type="button" onClick={refreshPlan}>
+          I've selected a plan, refresh
+        </button>
+      </div>
+    )
+  }
+
+  if (planStatus === 'error') {
+    return (
+      <div className="space-empty">
+        <div className="space-inline-error">
+          <div style={{ marginBottom: '8px' }}>⚠️ Error</div>
+          <div style={{ marginBottom: '12px' }}>{error || 'Failed to check plan status.'}</div>
+          <button className="space-secondary-btn" type="button" onClick={refreshPlan}>
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return null
+}
+
 function SpaceCreatorCard() {
   return (
     <div className="space-card-3d">
@@ -31,23 +160,37 @@ function SpaceCreatorCard() {
         <p className="space-card-subtitle">Spaces organize uploads, sharing and access control.</p>
       </div>
 
-      <SpaceCreator
-        gatewayHost={DEFAULT_GATEWAY_HOST}
-        gatewayDID={DEFAULT_GATEWAY_DID}
-        providerDID={DEFAULT_PROVIDER_DID}
-      >
-        <SpaceCreator.Form
-          className="space-form"
-          renderNameInput={() => <CreatorNameInput />}
-          renderAccessTypeSelector={() => <CreatorAccessSelect />}
-          renderSubmitButton={(disabled) => (
-            <button className="space-primary-btn" type="submit" disabled={disabled}>
-              {disabled ? 'Creating...' : 'Create Space'}
-            </button>
+      <PlanGate>
+        <PlanGate.Fallback
+          renderFallback={({ planStatus, error, selectPlan, refreshPlan }) => (
+            <PlanGateFallbackContent
+              planStatus={planStatus}
+              error={error}
+              selectPlan={selectPlan}
+              refreshPlan={refreshPlan}
+            />
           )}
         />
-        <CreatorStatus />
-      </SpaceCreator>
+        <PlanGate.Gate>
+          <SpaceCreator
+            gatewayHost={DEFAULT_GATEWAY_HOST}
+            gatewayDID={DEFAULT_GATEWAY_DID}
+            providerDID={DEFAULT_PROVIDER_DID}
+          >
+            <SpaceCreator.Form
+              className="space-form"
+              renderNameInput={() => <CreatorNameInput />}
+              renderAccessTypeSelector={() => <CreatorAccessSelect />}
+              renderSubmitButton={(disabled) => (
+                <button className="space-primary-btn" type="submit" disabled={disabled}>
+                  {disabled ? 'Creating...' : 'Create Space'}
+                </button>
+              )}
+            />
+            <CreatorStatus />
+          </SpaceCreator>
+        </PlanGate.Gate>
+      </PlanGate>
     </div>
   )
 }
@@ -114,27 +257,62 @@ function SpacePickerPanel() {
       <div className="space-toolbar">
         <SpacePicker.Search className="space-search" placeholder="Search spaces..." />
         <div className="space-toolbar-right">
-          <SpaceCreator
-            gatewayHost={DEFAULT_GATEWAY_HOST}
-            gatewayDID={DEFAULT_GATEWAY_DID}
-            providerDID={DEFAULT_PROVIDER_DID}
-          >
-            <SpaceCreator.Form
-              className="space-compact-form"
-              renderNameInput={() => (
-                <SpaceCreator.NameInput className="space-input" placeholder="New space name" required />
-              )}
-              renderAccessTypeSelector={() => (
-                <SpaceCreator.AccessTypeSelect className="space-select" />
-              )}
-              renderSubmitButton={(disabled) => (
-                <button className="space-secondary-btn" type="submit" disabled={disabled}>
-                  {disabled ? 'Creating...' : 'Add Space'}
-                </button>
-              )}
+          <PlanGate>
+            <PlanGate.Fallback
+              renderFallback={({ planStatus, error, selectPlan, refreshPlan }) => {
+                if (planStatus === 'loading') {
+                  return <div className="space-help">Checking plan status...</div>
+                }
+                if (planStatus === 'missing') {
+                  return (
+                    <div className="space-help">
+                      <button
+                        className="space-secondary-btn"
+                        type="button"
+                        onClick={() => selectPlan('did:web:starter.storacha.network')}
+                      >
+                        Select Plan to Add Space
+                      </button>
+                    </div>
+                  )
+                }
+                if (planStatus === 'error') {
+                  return (
+                    <div className="space-inline-error">
+                      {error || 'Plan check failed.'}
+                      <button className="space-secondary-btn" type="button" onClick={refreshPlan} style={{ marginLeft: '8px' }}>
+                        Retry
+                      </button>
+                    </div>
+                  )
+                }
+                return null
+              }}
             />
-            <CreatorStatus />
-          </SpaceCreator>
+            <PlanGate.Gate>
+              <SpaceCreator
+                gatewayHost={DEFAULT_GATEWAY_HOST}
+                gatewayDID={DEFAULT_GATEWAY_DID}
+                providerDID={DEFAULT_PROVIDER_DID}
+              >
+                <SpaceCreator.Form
+                  className="space-compact-form"
+                  renderNameInput={() => (
+                    <SpaceCreator.NameInput className="space-input" placeholder="New space name" required />
+                  )}
+                  renderAccessTypeSelector={() => (
+                    <SpaceCreator.AccessTypeSelect className="space-select" />
+                  )}
+                  renderSubmitButton={(disabled) => (
+                    <button className="space-secondary-btn" type="submit" disabled={disabled}>
+                      {disabled ? 'Creating...' : 'Add Space'}
+                    </button>
+                  )}
+                />
+                <CreatorStatus />
+              </SpaceCreator>
+            </PlanGate.Gate>
+          </PlanGate>
         </div>
       </div>
 
